@@ -1,98 +1,102 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { Image, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const scale = useSharedValue(1);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    scale.value = withRepeat(withTiming(1.2, { duration: 1000 }), -1, true);
+  }, []);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <View style={styles.gemaContainer}>
+      <ImageBackground
+        source={require("@/assets/images/backgroundImage.jpg")}
+        style={styles.image}
+        resizeMode='cover'>
+        <View style={styles.glassContainer}>
+          <Pressable>
+            <Text style={styles.text}>Who is the Imposter?</Text>
+          </Pressable>
+          <Image source={require("@/assets/images/imposterlogo.png")} style={styles.imagelogo} />
+        </View>
+        <View style={styles.findCrewmate}>
+          <Image source={require("@/assets/images/mysterious_eye.png")} style={styles.eye} />
+          <Text style={styles.text}>Silent Suspect!!</Text>
+        </View>
+        <Pressable onPress={() => router.push('/GameScreen')}>
+          <Animated.View style={[styles.startButton, animatedButtonStyle]}>
+            <Text style={styles.buttonText}>START GAME</Text>
+          </Animated.View>
+        </Pressable>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  gemaContainer: {
+    flex: 1
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center'
+  },
+  glassContainer: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(63, 49, 49, 0.5)',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: '20%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  text: {
+    color: 'white',
+    fontSize: 26,
+    fontWeight: 'bold',
+  },
+  imagelogo: {
+    width: 80,
+    height: 80,
+    marginLeft: 15,
+    resizeMode: 'contain'
+  },
+  findCrewmate: {
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    marginTop: '20%',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  eye: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
+    marginBottom: '10%'
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  startButton: {
+    backgroundColor: '#ff0000',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: '30%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 26,
+    fontWeight: 'bold',
   },
 });
