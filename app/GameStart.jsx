@@ -6,7 +6,7 @@ import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } f
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function GameStart() {
-    const { players, secretWord, hint, imposterIndex } = useLocalSearchParams();
+    const { players, secretWord, hint, category, imposterIndex } = useLocalSearchParams();
 
     // Parse the players array from the stringified parameter
     const playerArray = players ? JSON.parse(players) : [];
@@ -97,12 +97,19 @@ export default function GameStart() {
 
                                         <View style={styles.hintBox}>
                                             <MaterialCommunityIcons name="lightbulb-on" size={24} color="#ffff00" style={{ marginBottom: 8 }} />
+
+                                            <Text style={styles.hintLabel}>Category:</Text>
+                                            <Text style={styles.categoryInfoText}>{category}</Text>
+
+                                            <View style={styles.hintDivider} />
+
                                             <Text style={styles.hintLabel}>Your Hint:</Text>
                                             <Text style={styles.hintText}>{hint}</Text>
                                         </View>
                                     </View>
                                 ) : (
                                     <View style={styles.secretContainer}>
+                                        <Text style={styles.categoryLabel}>Category: {category}</Text>
                                         <Text style={styles.secretLabel}>The Secret Word is:</Text>
                                         <Text style={styles.secretWord}>{secretWord}</Text>
                                     </View>
@@ -219,6 +226,26 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         fontStyle: 'italic',
+    },
+    categoryInfoText: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textTransform: 'uppercase',
+    },
+    hintDivider: {
+        width: '40%',
+        height: 1,
+        backgroundColor: 'rgba(255, 255, 0, 0.2)',
+        marginVertical: 12,
+    },
+    categoryLabel: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textTransform: 'uppercase',
     },
     secretContainer: {
         alignItems: 'center',

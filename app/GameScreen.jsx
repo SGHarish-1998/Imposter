@@ -79,6 +79,18 @@ export default function GameScreen() {
         setPlayers(newPlayers);
     };
 
+    const shufflePlayers = () => {
+        if (players.length < 2) return;
+
+        const shuffled = [...players];
+        // Fisher-Yates Shuffle Algorithm
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setPlayers(shuffled);
+    };
+
     const handleCategorySelect = (categoryName) => {
         const words = CATEGORY_WORDS[categoryName];
         if (words && words.length > 0) {
@@ -90,6 +102,11 @@ export default function GameScreen() {
         }
     };
 
+    const handleRandomCategory = () => {
+        const randomIndex = Math.floor(Math.random() * CATEGORIES.length);
+        handleCategorySelect(CATEGORIES[randomIndex].name);
+    };
+
     const handleStartGame = () => {
         const imposterIndex = Math.floor(Math.random() * players.length);
         router.push({
@@ -98,6 +115,7 @@ export default function GameScreen() {
                 players: JSON.stringify(players),
                 secretWord: secretWord,
                 hint: hint,
+                category: selectedCategory,
                 imposterIndex: imposterIndex
             }
         });
@@ -131,13 +149,24 @@ export default function GameScreen() {
                                     <Text style={styles.buttonText}>Add</Text>
                                 </Pressable>
                             </View>
+                            <View style={styles.listHeader}>
+                                <Text style={styles.playerCountText}>{players.length} Players Added</Text>
+                                {players.length >= 2 && (
+                                    <Pressable style={styles.shuffleButton} onPress={shufflePlayers}>
+                                        <MaterialCommunityIcons name="shuffle-variant" size={18} color="white" />
+                                        <Text style={styles.shuffleButtonText}>SHUFFLE</Text>
+                                    </Pressable>
+                                )}
+                            </View>
+
                             <FlatList
                                 data={players}
                                 keyExtractor={(item, index) => index.toString()}
                                 renderItem={({ item, index }) => (
                                     <View style={styles.playerCard}>
                                         <View style={styles.playerInfo}>
-                                            <MaterialCommunityIcons name="account-circle" size={24} color="#ff4d4d" />
+                                            <Text style={styles.orderNumber}>{index + 1}.</Text>
+                                            <MaterialCommunityIcons name="account-circle" size={24} color="#ff4d4d" style={{ marginRight: 8 }} />
                                             <Text style={styles.playerNameText}>{item}</Text>
                                         </View>
 
@@ -157,22 +186,32 @@ export default function GameScreen() {
 
                         </View>
                     ) : (
-                        <View style={styles.gridContainer}>
-                            {CATEGORIES.map((category, index) => (
-                                <Pressable
-                                    key={index}
-                                    style={styles.categoryBox}
-                                    onPress={() => handleCategorySelect(category.name)}
-                                >
-                                    <MaterialCommunityIcons
-                                        name={category.icon}
-                                        size={32}
-                                        color="white"
-                                        style={styles.categoryIcon}
-                                    />
-                                    <Text style={styles.categoryText}>{category.name}</Text>
-                                </Pressable>
-                            ))}
+                        <View style={styles.categoryContainer}>
+                            <Pressable
+                                style={styles.randomCategoryBox}
+                                onPress={handleRandomCategory}
+                            >
+                                <MaterialCommunityIcons name="dice-5" size={32} color="#ffff00" />
+                                <Text style={styles.randomCategoryText}>SURPRISE ME</Text>
+                            </Pressable>
+
+                            <View style={styles.gridContainer}>
+                                {CATEGORIES.map((category, index) => (
+                                    <Pressable
+                                        key={index}
+                                        style={styles.categoryBox}
+                                        onPress={() => handleCategorySelect(category.name)}
+                                    >
+                                        <MaterialCommunityIcons
+                                            name={category.icon}
+                                            size={32}
+                                            color="white"
+                                            style={styles.categoryIcon}
+                                        />
+                                        <Text style={styles.categoryText}>{category.name}</Text>
+                                    </Pressable>
+                                ))}
+                            </View>
                         </View>
                     )}
                 </SafeAreaView>
@@ -215,6 +254,30 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         justifyContent: 'space-between',
         paddingHorizontal: 15,
+    },
+    categoryContainer: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    randomCategoryBox: {
+        width: '94%',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(255, 255, 0, 0.1)',
+        borderColor: '#ffff00',
+        borderWidth: 2,
+        borderRadius: 20,
+        padding: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 25,
+        borderStyle: 'dashed',
+    },
+    randomCategoryText: {
+        color: '#ffff00',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginLeft: 15,
+        letterSpacing: 2,
     },
     categoryBox: {
         width: '47%',
@@ -295,9 +358,10 @@ const styles = StyleSheet.create({
     },
     finalStartButton: {
         backgroundColor: '#ff0000',
-        padding: 20,
+        padding: 30,
         borderRadius: 10,
-        marginTop: '10%',
+        marginTop: '5%',
+        marginBottom: '10%',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -305,6 +369,41 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 26,
         fontWeight: 'bold',
+    },
+    listHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        marginBottom: 10,
+    },
+    playerCountText: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    shuffleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    shuffleButtonText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 4,
+    },
+    orderNumber: {
+        color: 'rgba(255, 255, 255, 0.4)',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginRight: 8,
+        width: 20,
     },
     backButton: {
         color: 'white',
