@@ -1,14 +1,47 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, ImageBackground, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function GameLive() {
     const { players, imposterIndex } = useLocalSearchParams();
+    const navigation = useNavigation();
     const playerArray = players ? JSON.parse(players) : [];
 
-    // Timer State (Starting at 60 seconds)
+    // Disable native back gesture for this screen to let PanResponder take over
+    useEffect(() => {
+        navigation.setOptions({
+            gestureEnabled: false,
+        });
+    }, [navigation]);
+
+    // Swipe Guard: Show quit dialog when user swipes left-to-right
+    const confirmQuit = () => {
+        Alert.alert(
+            'Quit Game?',
+            'Are you sure you want to end the current game?',
+            [
+                { text: 'Stay', style: 'cancel' },
+                { text: 'Quit', style: 'destructive', onPress: () => router.replace('/GameScreen') },
+            ]
+        );
+    };
+
+    const panResponder = useMemo(() => PanResponder.create({
+        // use Capture to intercept the gesture before the ScrollView or System sees it
+        onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+            // Activate if swipe starts moving right (dx > 20) and is mostly horizontal
+            return gestureState.dx > 20 && Math.abs(gestureState.dy) < 30;
+        },
+        onPanResponderRelease: (_, gestureState) => {
+            // Trigger if swipe was fast (vx) or reached a certain distance (dx)
+            if (gestureState.dx > 60 || gestureState.vx > 0.4) {
+                confirmQuit();
+            }
+        },
+    }), []);
+
     const [timeLeft, setTimeLeft] = useState(60);
 
     useEffect(() => {
@@ -56,56 +89,58 @@ export default function GameLive() {
     };
 
     return (
-        <ImageBackground
-            source={require("@/assets/images/backgroundImage.jpg")}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-        >
-            <SafeAreaView style={styles.safeArea}>
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
-                    <View style={styles.container}>
-                        <Text style={styles.headerText}>TIME TO DISCUSS</Text>
+        <View style={{ flex: 1 }} {...panResponder.panHandlers}>
+            <ImageBackground
+                source={require("@/assets/images/backgroundImage.jpg")}
+                style={styles.backgroundImage}
+                resizeMode="cover"
+            >
+                <SafeAreaView style={styles.safeArea}>
+                    <ScrollView
+                        contentContainerStyle={styles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.container}>
+                            <Text style={styles.headerText}>TIME TO DISCUSS</Text>
 
-                        <View style={styles.timerCircle}>
-                            <Text style={[
-                                styles.timerText,
-                                timeLeft <= 10 && { color: '#ff4d4d' }
-                            ]}>
-                                {formatTime(timeLeft)}
+                            <View style={styles.timerCircle}>
+                                <Text style={[
+                                    styles.timerText,
+                                    timeLeft <= 10 && { color: '#ff4d4d' }
+                                ]}>
+                                    {formatTime(timeLeft)}
+                                </Text>
+                            </View>
+
+                            <Text style={styles.instructionText}>
+                                {timeLeft > 0 ? "Find the Imposter!" : "TIME UP! VOTE NOW!"}
                             </Text>
-                        </View>
 
-                        <Text style={styles.instructionText}>
-                            {timeLeft > 0 ? "Find the Imposter!" : "TIME UP! VOTE NOW!"}
-                        </Text>
-
-                        <View style={styles.voteContainer}>
-                            <Text style={styles.voteHeader}>Cast your vote:</Text>
-                            <View style={styles.playerGrid}>
-                                {playerArray.map((player, index) => (
-                                    <Pressable
-                                        key={index}
-                                        style={styles.voteCard}
-                                        onPress={() => handleVote(index)}
-                                    >
-                                        <View style={styles.playerIconContainer}>
-                                            <MaterialCommunityIcons name="account-search" size={24} color="white" />
-                                        </View>
-                                        <Text style={styles.voteText}>{player}</Text>
-                                        <View style={styles.accuseBadge}>
-                                            <Text style={styles.accuseText}>ACCUSE</Text>
-                                        </View>
-                                    </Pressable>
-                                ))}
+                            <View style={styles.voteContainer}>
+                                <Text style={styles.voteHeader}>Cast your vote:</Text>
+                                <View style={styles.playerGrid}>
+                                    {playerArray.map((player, index) => (
+                                        <Pressable
+                                            key={index}
+                                            style={styles.voteCard}
+                                            onPress={() => handleVote(index)}
+                                        >
+                                            <View style={styles.playerIconContainer}>
+                                                <MaterialCommunityIcons name="account-search" size={24} color="white" />
+                                            </View>
+                                            <Text style={styles.voteText}>{player}</Text>
+                                            <View style={styles.accuseBadge}>
+                                                <Text style={styles.accuseText}>ACCUSE</Text>
+                                            </View>
+                                        </Pressable>
+                                    ))}
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
-        </ImageBackground>
+                    </ScrollView>
+                </SafeAreaView>
+            </ImageBackground>
+        </View>
     );
 }
 

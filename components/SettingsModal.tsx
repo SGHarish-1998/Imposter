@@ -18,6 +18,7 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>Settings ⚙️</Text>
                     <Text style={styles.settingsDescription}>More options coming soon!</Text>
+
                     <Pressable style={styles.closeButton} onPress={onClose}>
                         <Text style={styles.closeButtonText}>CLOSE</Text>
                     </Pressable>
